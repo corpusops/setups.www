@@ -1,0 +1,7 @@
+---
+# copy this file instead of symlinking
+cops_app_name: wwwproject
+# cops_www_nginx_port: "{{cops_www_http_port}}"
+# cops_www_nginx_ssl_port: "{{cops_www_https_port}}"
+# cops_www_admin_user: admin
+# cops_www_admin_password: secretVVSV4SA8vK2TfeD

@@ -1,0 +1,7 @@
+---
+- import_playbook: haproxy.yml
+  tags: [play_www_haproxy]
+  when: ["play_www_haproxy|default(true)"]
+- import_playbook: app.yml
+  tags: [play_www_app]
+  when: ["play_www_app|default(true)"]

@@ -1,0 +1,13 @@
+---
+# APP
+- hosts: "{{www_servers|default('all')}}"
+  roles: [corpusops.roles/ansible_plugins]
+  tasks:
+  - when: ["cops_www_lifecycle_app|default(true)"]
+    tags: ["cops_www_lifecycle_app"]
+    include_role: {name: www_app_vars,  allow_duplicates: false}
+  - when: ["cops_www_lifecycle_app"]
+    tags: ["cops_www_lifecycle_app"]
+    block:
+    - include_role: {name: www_push_code, allow_duplicates: false}
+    - include_role: {name: www, allow_duplicates: false}

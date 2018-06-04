@@ -1,0 +1,6 @@
+[submodule "local/setups.zope"]
+	path = local/setups.zope
+	url = https://github.com/corpusops/setups.zope.git
+[submodule "local/setups.www"]
+	path = local/setups.www
+	url = https://github.com/corpusops/setups.www.git

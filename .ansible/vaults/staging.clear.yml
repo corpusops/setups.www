@@ -1,0 +1,32 @@
+---
+cops_www_domain: "staging-myapp.foo.net"
+cops_www_vhosts:
+- domain: "foo.mydomain.net"
+  basename: "foo"
+  doc_root: "{{vars['cops_www_data_root']}}/foo"
+  upstream_name: "foo"
+  ssh_user:
+    user: foo-ftp
+    groups: [sshusers]
+    # home: null
+    keys:
+    - key: "ssh-rsa AAAAwxxx"
+      key_options: "no-pty,no-port-forwarding,no-user-rc,no-agent-forwarding,no-X11-forwarding"
+      # state: absent
+  server_aliases: []
+  redirect_aliases: true
+  port: "{{vars['cops_www_http_port']}}"
+  ssl_port: "{{vars['cops_www_https_port']}}"
+  content_template: "../templates/www.conf"
+  top_template: "../templates/www.top.conf"
+  is_default_server: true
+  htpasswd: "/etc/nginx/htpasswd.foo"
+  http_users: "{{vars['cops_www_http_users_map']['foo']}}"
+  ssl_protected: false
+  ssl_cert: ""
+  ssl_key: ""
+  loglevel: crit
+  upstream_host: localhost
+  upstream_port: 8080
+  http_auth_restricted: false
+  rp_max_body_size: "{{vars['cops_www_rp_max_body_size']}}"     
