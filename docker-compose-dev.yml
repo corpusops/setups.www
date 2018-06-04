@@ -1,0 +1,83 @@
+---
+version: '3.5'
+# Build with (build stock first !):
+#  docker build --squash  -t corpusops/www:dev -f Dockerfile.dev [--build-arg=SKIP_COPS_UPDATE=y]
+# Start with:
+#  SUPEREDITORS=$(id -u) docker-compose -f d*-compose-dev.yml -f d*-compose-project.yml -f d*-compose-project-dev.yml up -t 0 -d --force-recreate www
+#
+x-image: &image_template
+  environment:
+  - SUPEREDITORS=$SUPEREDITORS
+  - "DOCKER_SKIP_START=${DOCKER_SKIP_START-}"
+  - |
+    A_RECONFIGURE=---
+    cops_www_docker_has_front_haproxy: true
+    cops_www_docker_has_nginx: true
+    cops_www_docker_has_zeo: true
+    cops_www_docker_has_www: true
+    only_steps: true
+    cops_www_lifecycle_app_push_code: false
+    cops_www_s_docker_reconfigure: true
+    cops_www_s_setup_reverse_proxy: true
+    cops_www_s_setup_configs: true
+    corpusops_services_proxy_haproxy_do_prerequisites: false
+    corpusops_services_proxy_haproxy_do_services: false
+    #
+    cops_www_s_entry_point: true
+    cops_www_cron_periodicity_pack: "#"
+    cops_www_cron_periodicity_backup_inc: "#"
+    cops_www_cron_periodicity_backup_snap: "#"
+    cops_www_cron_periodicity_restart: "#"
+  - |
+    A_POSTCONFIGURE=---
+    only_steps: true
+    corpusops_services_proxy_haproxy_do_prerequisites: false
+    corpusops_services_proxy_haproxy_do_services: false
+    cops_www_lifecycle_app_push_code: false
+    cops_www_s_manage_content: true
+  command: >
+    sh -c 'if [ "x$DOCKER_SKIP_START" != x ];
+    then while true;do echo sleeping;sleep 65535;done
+    else exec /app_entry_point;
+    fi'
+  # for now this is a bloat image-as-a-vm to make a dev env ligther than a vagrant VM
+  tmpfs: [/run, /run/lock]
+  volumes: &image_volumes
+  # systemd
+  - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+  # data
+  - "./local/setup:/setup"
+  - "./local/data/blobstorage/storage:/srv/projects/wwwproject/data/var/blobstorage/storage"
+  - "./local/data/blobstorage/backup:/srv/projects/wwwproject/data/var/blobstorage/backup"
+  - "./local/data/filestorage:/srv/projects/wwwproject/data/var/filestorage"
+  - "./local/data/backups:/srv/projects/wwwproject/data/var/backups"
+  - "./local/data/snapshotbackups:/srv/projects/wwwproject/data/var/snapshotbackups"
+  - "./local/data/log:/srv/projects/wwwproject/data/var/log"
+  # sources
+  - "./src:/srv/projects/wwwproject/project/src"
+  - "./setup.py:/srv/projects/wwwproject/project/setup.py"
+  - "./setup.cfg:/srv/projects/wwwproject/project/setup.cfg"
+  - "./buildout.cfg:/srv/projects/wwwproject/project/buildout.cfg"
+  - "./MANIFEST.in:/srv/projects/wwwproject/project/MANIFEST.in"
+  - "./buildout-prod.cfg:/srv/projects/wwwproject/project/buildout-prod.cfg"
+  - "./.coveragerc:/srv/projects/wwwproject/project/.coveragerc"
+  - "./bootstrap-buildout.py:/srv/projects/wwwproject/project/bootstrap-buildout.py"
+  - "./products:/srv/projects/wwwproject/project/products"
+  - "./etc:/srv/projects/wwwproject/project/etc"
+  - "./docs:/srv/projects/wwwproject/project/docs"
+  - "./www:/srv/projects/wwwproject/project/www"
+  # provision
+  - "./.ansible/vaults:/provision_dir/.ansible/vaults"
+  - "./.ansible/scripts:/provision_dir/.ansible/scripts"
+  - "./.ansible/playbooks:/provision_dir/.ansible/playbooks"
+  - "./local/setups.www:/provision_dir/local/setups.www"
+  # Remember: /setup/rootfs/ is synced inside the container /
+  # Need a bind mount in local/corpusops.bootstrap instead of the symlink
+  # - "./local/corpusops.bootstrap/bin:/srv/corpusops/corpusops.bootstrap/bin"
+  # - "./local/corpusops.bootstrap/hacking:/srv/corpusops/corpusops.bootstrap/hacking"
+  # - "./local/corpusops.bootstrap/roles:/srv/corpusops/corpusops.bootstrap/roles"
+  # - "./local/corpusops.bootstrap/requirements:/srv/corpusops/corpusops.bootstrap/requirements"
+  # - "./local/corpusops.bootstrap/docs:/srv/corpusops/corpusops.bootstrap/docs"
+services:
+  www:
+    <<:  [ *image_template ]

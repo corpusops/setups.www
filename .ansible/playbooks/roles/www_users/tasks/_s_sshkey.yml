@@ -1,0 +1,10 @@
+---
+- authorized_key:
+    state: "{{subkey.get('state', 'present')}}"
+    user: "{{vh.ssh_user.user}}"
+    key: "{{subkey.key}}"
+    key_options: "{{subkey.key_options|default(omit)}}"
+    manage_dir: "{{subkey.manage_dir|default(omit)}}"
+    path: "{{subkey.path|default(omit)}}"
+    comment: "{{subkey.comment|default(omit)}}"
+    exclusive: "{{subkey.exclusive|default(omit)}}"

@@ -1,0 +1,302 @@
+---
+cops_www_dynamic_haproxy: true
+corpusops_core_projects_path: /srv/projects
+# users than have full right to edit file in the container
+# When this is enabled, the project user/group is also granted full perms
+# (attention, uids!)
+cops_www__supereditors_paths: |-
+  {% set res = [
+    vars['cops_www_project_root'],
+    vars['cops_www_data_root']] %}
+  {% if ansible_virtualization_type in ['docker'] %}
+  {%  set _ = res.extend(['/srv/backups', '/setup']) %}
+  {% endif %}
+  {{ res | to_json }}
+# space separated string of uids to allow to write inside
+# projetct directories (used in development through posix ACLS setter)
+cops_www__supereditors: >-
+  {{ ansible_env.get(
+      'SUPEREDITORS', cops_supereditors|default('')
+     ) | copsf_splitstrip | to_json }}
+cops_www_supereditors_paths: "{{vars['cops_www__supereditors_paths']}}"
+cops_www_supereditors: "{{vars['cops_www__supereditors']}}"
+# cops_www_deb_packages is initialised on behalf of cops_registry voodoo
+# and let users override the list easily
+cops_www_deb_runtime_packages:
+  - apache2-utils
+  - bzip2
+  - gettext
+  - git
+  - python-setuptools
+  - python-numpy
+  - zlib1g
+  - wget
+  - rsync
+  - python-passlib
+  - python3-passlib
+cops_www_packages: "{{vars['cops_www_deb_packages___default']}}"
+cops_www_deb_packages___default: "{{
+  (cops_www_deb_runtime_packages + [])
+  | to_json
+  }}"
+# either null string or "3"
+cops_www_pkg_python_slug: ""
+cops_www_pkg_mysql: "libmysqlclient20"
+cops_www_deb_build_packages: "{{vars['cops_www_deb_build_packages___default']}}"
+cops_www_deb_build_packages___default:
+  - "libpython{{cops_www_pkg_python_slug}}-dev"
+  - "python{{cops_www_pkg_python_slug}}-dev"
+  - libreadline-dev
+  - libdb-dev
+  - libssl-dev
+  - libxml2-dev
+  - libgeoip-dev
+  - libcurl4-openssl-dev
+  - libsigc++-2.0-dev
+  - autoconf
+  - automake
+  - libbz2-dev
+  - build-essential
+  - libtiff5-dev
+cops_www_rh_build_packages: []
+cops_www_rh_packages: "{{vars['cops_www_rh_packages___default']}}"
+cops_www_rh_packages___default: []
+# extra conf to add to pgconf (directly added to a tuning conf file (string))
+cops_www_sysctls: []
+# cops_www_domain: "{{ansible_fqdn}}"
+cops_www_domain: "{{cops_app_name}}.corpusops.local"
+cops_www_front_domain: null
+# for internal monitoring
+cops_www_query_host: "127.0.0.1"
+# for internal service access
+cops_www_restart_check_retries: 60
+cops_www_internal_host: "127.0.0.1"
+cops_www_name: 'www'
+cops_www_user: "{{vars['cops_www_name']}}-user"
+cops_www_group: "{{vars['cops_www_name']}}-group"
+cops_www_projects_dir: "{{corpusops_vars.projects_path}}"
+cops_www_project_sdir: "{{vars['cops_www_name']}}"
+cops_www_project_dir: "{{vars['cops_www_projects_dir']}}/{{vars['cops_www_project_sdir']}}"
+cops_www_project_root: "{{vars['cops_www_project_dir']}}/project"
+cops_www_data_root: "{{vars['cops_www_project_dir']}}/data"
+cops_www_cfg: "{{vars['cops_www_data_root']}}/config"
+cops_www_fixperms: "{{vars['cops_www_project_dir']}}/fixperms.sh"
+cops_www_fixperms_cron: "/etc/cron.d/{{vars['cops_www_name']}}-fixperms"
+cops_www_fixperms_cron_periodicity: "30 1 * * *"
+cops_www_secret_variables: []
+cops_www_cops_format_resolve_topdb: false
+cops_www_cops_do_format_resolve: false
+cops_www_haproxy_restart_action: restarted
+cops_www_cops_sub_namespaces:
+  buildout: {}
+  eggver: {}
+  nginx: {}
+  front_nginx: {}
+  s: {}
+  lifecycle: {}
+cops_www_use_etc_hosts: false
+cops_www_www_uri: "http://{{vars['cops_www_domain']}}"
+cops_www_env_overrides: {}
+cops_www_env: {}
+cops_www_www_bind_host: '127.0.0.1'
+# templates
+## entry point
+cops_www_provision_dir: /provision_dir
+cops_www_ep_template: "../templates/app_entry_point"
+cops_www_ep_playbook: ".ansible/playbooks/site.yml"
+cops_www_docker_has_nginx: false
+cops_www_docker_has_www: false
+# global orchestration steps (db, code sync, web & workers prereqs, www config)
+cops_www_become: true
+cops_www_ep_main_ep: "/entry_point"
+# service
+cops_www_service: "supervisor.{{vars['cops_www_name']}}"
+cops_www_services: ["nginx"]
+cops_www_services_nginx_reload_state: "reloaded"
+# cops_www_rhandlers: [restart_cops_www]
+cops_www_rhandlers: [restart_cops_www_systemd, restart_cops_www]
+# Reconfigure upon image reboots
+cops_www_reconfigure_services: |-
+  {% set ret = [] %}
+  {% if ansible_virtualization_type in ['docker'] %}
+  {% set _ = ret.append("post-start-{{vars['cops_www_service']}}") %}
+  {% endif %}
+  {{ ret | to_json }}
+cops_www_activated: true
+# Layout, files & configs
+cops_www_stickymode: "2"
+cops_www_files: "{{vars['cops_www_files___default']}}"
+cops_www_doc_root: "{{vars['cops_www_data_root']}}/www"
+cops_www_files___default:
+  - {path: "{{vars['cops_www_projects_dir']}}",
+     owner: root, group: root, state: directory}
+  - {path: "{{vars['cops_www_project_dir']}}",
+     owner: root, group: root, state: directory}
+  - {path: "{{vars['cops_www_project_root']}}",
+     owner: "{{vars['cops_www_user']}}", group: "{{vars['cops_www_group']}}",
+     state: directory, mode: "{{vars['cops_www_stickymode']}}750"}
+  - {path: "{{vars['cops_www_data_root']}}",
+     owner: "{{vars['cops_www_user']}}", group: "{{vars['cops_www_group']}}",
+     state: directory, mode: "{{vars['cops_www_stickymode']}}751"}
+  - {path: "{{vars['cops_www_doc_root']}}",
+     owner: "{{vars['cops_www_user']}}", group: "{{vars['cops_www_group']}}",
+     state: directory, mode: "{{vars['cops_www_stickymode']}}750"}
+# Config files
+cops_www_configs: "{{vars['cops_www_configs___default']}}"
+cops_www_configs___default:
+  - {src: "../templates/crons",
+     dest: "/etc/cron.d/www-{{vars['cops_www_name']}}",
+     mode: "0644",
+     owner: "root",
+     group: "root"}
+cops_www_fixperms_configs: "{{vars['cops_www_fixperms_configs___default']}}"
+cops_www_fixperms_configs___default:
+  - {src: "../templates/fixperms.sh",
+     dest: "{{vars['cops_www_fixperms']}}", mode: "0755",
+     owner: root, group: root}
+cops_www_ep_configs: "{{vars['cops_www_ep_configs___default']}}"
+cops_www_ep_configs___default:
+  # script to reconfigure image before and often after
+  # image entry point (generally systemd) is launched
+  - {src: "../templates/reconfigure.sh",
+     dest: "{{vars['cops_www_reconfigure']}}",
+     mode: "0755",
+     owner: "root",
+     group: "root"}
+  - {src: "../templates/post-start-reconfigure.service",
+     dest: "/etc/systemd/system/post-start-{{vars['cops_www_service']}}.service",
+     mode: "0644",
+     owner: "root",
+     group: "root"}
+  - {src: "{{vars['cops_www_ep_template']}}",
+     dest: "/app_entry_point", mode: "0755",
+     owner: root, group: root}
+# SystemD based reconfigure unit settings
+cops_www_reconfigure_service_stderr: ""
+cops_www_reconfigure_service_stdout: ""
+cops_www_reconfigure_unit_after: "network.target {{vars['cops_www_service']}}.service"
+cops_www_reconfigure_install_wantedby: "multi-user.target"
+cops_www_reconfigure: "{{vars['cops_www_provision_dir']}}/ansible_reconfigure.sh"
+cops_www_reconfigure_passenv: >
+  COPS_ROOT COPS_IMG NO_SILENT NO_OUTPUT NONINTERACTIVE
+  ANSIBLE_CWD ANSIBLE_PLAY ANSIBLE_VARARGS ANSIBLE_ARGS
+  A_VAULTS_FOLDERS A_VAULTS A_EXTRA_VAULTS
+  A_INVENTORY A_ENV_NAME NO_DEFAULT_VAULTS
+# Code synchronnisation settings (FORCE_COPS_PROVISION_PUSH_CODE to force)
+cops_www_push_codes_cwd: "{{vars['cops_cwd']}}"
+cops_www_push_codes_sync_mode: "{{ (
+  cops_installer_mode in ['vagrant'] or
+  ansible_virtualization_type in ['docker']
+  ) and 'rsync' or 'git' }}"
+cops_www_push_codes_file_tests:
+  git: []
+  rsync: ["Dockerfile", ".git"]
+cops_www_push_codes_rsync_opts:
+  git:   ["-azv",                           "--exclude", "local/*", "--exclude", ".vagrant", "--exclude", "*.retry"]
+  rsync: ["-azv", "--include", ".git/**/*", "--exclude", "local/*", "--exclude", ".vagrant", "--exclude", "*.retry"]
+cops_www_push_codes_rsync_submodule_opts:
+  git:   ["-azv", "--exclude", "*.retry"]
+  rsync: ["-azv", "--exclude", "*.retry"]
+cops_www_force_push_code: false
+cops_www_push_codes:
+- path: "{{vars['cops_www_project_root']}}"
+  origin_path: "{{vars['cops_www_push_codes_cwd']}}"
+  force_sync: "{{cops_www_force_push_code}}"
+  sync_mode: "{{cops_www_push_codes_sync_mode}}"
+  rsync_opts: "{{cops_www_push_codes_rsync_opts[cops_www_push_codes_sync_mode]}}"
+  file_tests: "{{cops_www_push_codes_file_tests[cops_www_push_codes_sync_mode]}}"
+  owner: "{{vars['cops_www_user']}}"
+  group: "{{vars['cops_www_group']}}"
+  sub_paths:
+  - path: local/setups.www
+    force_sync: "{{cops_www_force_push_code}}"
+    rsync_opts: "{{cops_www_push_codes_rsync_submodule_opts[cops_www_push_codes_sync_mode]}}"
+    is_submodule: true
+# SSH deploy settings -> env vault
+cops_deploy_ssh_key_paths:
+  deploy:
+    path: "{{'local/.ssh/deploy_key'|copsf_abspath}}"
+    pub: "{{cops_deploy_ssh_pub_key|default('')}}"
+    #  ssh-rsa xxx x@y
+    # should be in encypted vault
+    private: "{{cops_deploy_ssh_key|default('')}}"
+    # -----BEGIN RSA PRIVATE KEY-----
+    # -----END RSA PRIVATE KEY-----
+# Reverse proxy Nginx
+cops_www_default_vhost_is_default_server: false
+cops_www_logrotate_conf: "/etc/logrotate.d/cops_{{vars['cops_www_name']}}.conf"
+cops_www_logrotate_rotate: 365
+cops_www_logrotate_size: 10M
+cops_www_htpasswd: "/etc/nginx/{{vars['cops_www_name']}}-htpasswd"
+cops_www_http_auth_restricted: false
+cops_www_http_users: []
+# - {user: "{{vars['cops_www_admin_user']}}", password: "{{vars['cops_www_admin_password']}}"}
+cops_www_admin_user: admin
+cops_www_admin_password: secretVVSV4SA8vK2TfeD
+cops_www_rp_max_body_size: "10000M"
+cops_www_http_port: "80"
+cops_www_https_port: "443"
+cops_www_nginx: {}
+cops_www_vhosts: []
+#- domain: "{{vars['cops_www_domain']}}"
+#  basename: "foovhost"
+#  doc_root: "{{vars['cops_www_doc_root']}}"
+#  upstream_name: "appbackend"
+#  ssh_user:
+#   user: foo
+#   ### doc_root if null
+#   # home: null
+#   keys:
+#   - key: "ssh-rsa A== k@j"
+#     state: present
+#     key_options: defaut omit
+#     manage_dir: defaut omit
+#     path: defaut omit
+#     comment: defaut omit
+#     exclusive: defaut omit
+#  server_aliases: ["www.{{vars['cops_www_domain']}}"]
+#  redirect_aliases: true
+#  port: "{{vars['cops_www_http_port']}}"
+#  ssl_port: "{{vars['cops_www_https_port']}}"
+#  content_template: "../templates/www.conf"
+#  top_template: "../templates/www.top.conf"
+#  is_default_server: true
+#	 cache_disabled: false
+#  htpasswd: "{{vars['cops_www_htpasswd']}}"
+#  http_users: "{{vars['cops_www_http_users']}}"
+#  ssl_protected: false
+#  ssl_cert: ""
+#  ssl_key: ""
+#  loglevel: crit
+#  upstream_host: localhost
+#  upstream_port: 8080
+#  plonesite: Plone
+#  http_auth_restricted: false
+#  rp_max_body_size: "{{vars['cops_www_rp_max_body_size']}}"
+#- domain: "www.foo.net"
+#  http_auth_restricted: false
+#  server_aliases: ["foo.bet"]
+#  redirect_aliases: true
+#  port: "{{vars['cops_www_http_port']}}"
+#  ssl_port: "{{vars['cops_www_https_port']}}"
+#  content_template: "../templates/redirect.conf"
+#  top_template: "../templates/redirect.top.conf"
+#  basename: "epersyloisirs"
+#  is_default_server: false
+#  htpasswd: "{{vars['cops_www_htpasswd']}}"
+#  http_users: "{{vars['cops_www_http_users']}}"
+#  ssl_protected: false
+#  ssl_cert: ""
+#  ssl_key: ""
+#  loglevel: crit
+#  upstream_name: "{basename}"
+#  doc_root: "{{vars['cops_www_doc_root']}}"
+#  redirects:
+#  - "http://www.otherfoo.net"
+#  users: ['appuser-ftp']
+#  rp_max_body_size: "{{vars['cops_www_rp_max_body_size']}}"
+cops_www_crons: "{{vars['cops_www_crons___default']}}"
+cops_www_crons___default:
+- "# MAILTO=foobar"
+- "# weekly pack"
+# vim:set ft=sls:

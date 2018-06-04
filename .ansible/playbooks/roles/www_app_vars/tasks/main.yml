@@ -1,0 +1,8 @@
+---
+- include_role: {name: www_vars,  allow_duplicates: false}
+- set_fact:
+    cacheable: false
+    cops_www_lifecycle_app: "{{
+     ((not vars.get('SKIP_INSTALL_ZOPE', False)) or
+      cops_www_lifecycle_app|default(false) or
+      (vars.get('FORCE_INSTALL_ZOPE', False)))}}"

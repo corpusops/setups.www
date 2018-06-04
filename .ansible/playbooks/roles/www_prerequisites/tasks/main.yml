@@ -1,0 +1,70 @@
+---
+- tags: [cops_www_s_prerequisites_nginxinstall]
+  when: [cops_www_s_prerequisites_nginxinstall]
+  block:
+  - shell: nginx -v
+    changed_when: false
+  rescue:
+  - name: Preinstalling nginx
+    include_role: {name: "corpusops.roles/services_http_nginx"}
+  - set_fact:
+      cacheable: valse
+      cops_www_s_nginx_already_done: true
+
+- when: [cops_www_s_prerequisites_pkgs]
+  tags: [cops_www_s_prerequisites_pkgs]
+  block:
+  # workaround the libjpegturbo transitional
+  # package hell by installing it explicitly
+  - name: update & install libjpeg-dev (workaround for deb bug)
+    package:
+      cache_valid_time: '{{60*60}}'
+      update_cache: yes
+      name: '{{item}}'
+      state: present
+    when: "(ansible_os_family.lower() in ['debian'])"
+    with_items: [libjpeg-dev]
+  - name: update & install prerequisites
+    package:
+      cache_valid_time: '{{60*60}}'
+      update_cache: yes
+      name: '{{item}}'
+      state: present
+    when: "(ansible_os_family.lower() in ['debian'] and
+            cops_www_vars.deb_packages is not none and
+            cops_www_vars.deb_packages|length > 0)"
+    with_items: "{{cops_www_vars.deb_packages}}"
+  - name: update & install prerequisites
+    package:
+      update_cache: yes
+      enablerepo: epel,epel-testing
+      name: '{{item}}'
+      state: present
+    when: "(ansible_os_family.lower() in ['redhat'] and
+            cops_www_vars.rh_packages is not none and
+            cops_www_vars.rh_packages|length > 0)"
+    with_items: "{{cops_www_vars.rh_packages}}"
+- when: [cops_www_s_prerequisites_build_pkgs]
+  tags: [cops_www_s_prerequisites_build_pkgs]
+  block:
+  - name: update & install build prerequisites
+    package:
+      cache_valid_time: '{{60*60}}'
+      update_cache: yes
+      name: '{{item}}'
+      state: present
+    when: "(ansible_os_family.lower() in ['debian'] and
+            cops_www_vars.deb_build_packages is not none and
+            cops_www_vars.deb_build_packages|length > 0)"
+    with_items: "{{cops_www_vars.deb_build_packages}}"
+  - name: update & install build prerequisites
+    package:
+      update_cache: yes
+      enablerepo: epel,epel-testing
+      name: '{{item}}'
+      state: present
+    when: "(ansible_os_family.lower() in ['redhat'] and
+            cops_www_vars.rh_build_packages is not none and
+            cops_www_vars.rh_build_packages|length > 0)"
+    with_items: "{{cops_www_vars.rh_build_packages}}"
+

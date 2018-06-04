@@ -1,0 +1,31 @@
+---
+- when: "vh.get('ssh_user', None)|copsf_bool"
+  block:
+  - include_tasks: _s_group.yml
+    tags: [cops_www_s_users_group]
+    when: [cops_www_s_users_group]
+    with_items:
+    - "{{vh.ssh_user.get('groups', [])}}"
+    - "{{vh.ssh_user.get('group', vh.ssh_user.user) or vh.ssh_user.user}}"
+    loop_control: {loop_var: group}
+  - user:
+      group: "{{vh.ssh_user.get('group', vh.ssh_user.user) or vh.ssh_user.user}}"
+      groups: "{{vh.ssh_user.get('groups', [])}}"
+      name: "{{vh.ssh_user.user}}"
+      state: present
+      append: true
+      home: "{{vh.ssh_user.home|default(omit)}}"
+      password: "{{vh.ssh_user.password|default(omit)}}"
+    tags: [cops_www_s_users_user]
+    when: [cops_www_s_users_user]
+  - file:
+      state: link
+      src: "{{vh.doc_root}}"
+      dest: "~/doc_root"
+      force: true
+    when: "not vh.doc_root.startswith(vh.ssh_user.home|default('') or 'home')"
+    become: true
+    become_user: "{{vh.ssh_user.user}}"
+  - include_tasks: _s_sshkey.yml
+    with_items: "{{vh.ssh_user.get('keys', [])}}"
+    loop_control: {loop_var: subkey}

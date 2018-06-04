@@ -1,0 +1,4 @@
+---
+www_servers: all
+cops_www_force_push_code: true
+cops_www_project_sdir: "wwwproject"

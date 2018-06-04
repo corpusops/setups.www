@@ -1,0 +1,5 @@
+---
+- group:
+    name: "{{group}}"
+    state: present
+  when: "group|copsf_bool"

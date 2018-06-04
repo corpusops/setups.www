@@ -1,0 +1,12 @@
+---
+- include_role: {name: www_setup_configs, allow_duplicates: false}
+  tags: [cops_www_s_setup_configs]
+  when: [cops_www_s_setup_configs]
+
+- include_role: {name: www_setup_hosts, allow_duplicates: false}
+  tags: [cops_www_s_setup_hosts]
+  when: [cops_www_s_setup_hosts]
+
+- include_role: {name: www_setup_reverse_proxy, allow_duplicates: false}
+  tags: [cops_www_s_setup_reverse_proxy]
+  when: [cops_www_s_setup_reverse_proxy]

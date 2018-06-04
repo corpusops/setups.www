@@ -1,0 +1,19 @@
+---
+- group:
+    name: "{{cops_www_vars.group}}"
+    state: present
+  tags: [cops_www_s_users_group]
+  when: [cops_www_s_users_group]
+- user:
+    group: "{{cops_www_vars.group}}"
+    name: "{{cops_www_vars.user}}"
+    state: present
+    append: true
+    generate_ssh_key: true
+  tags: [cops_www_s_users_user]
+  when: [cops_www_s_users_user]
+- include_tasks: _s_user.yml
+  tags: [cops_www_s_users_user]
+  when: [cops_www_s_users_user]
+  with_items: "{{cops_www_vars.vhosts}}"
+  loop_control: {loop_var: vh}

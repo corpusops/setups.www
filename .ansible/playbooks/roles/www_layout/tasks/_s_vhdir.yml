@@ -1,0 +1,7 @@
+---
+- file:
+    state: directory
+    path: "{{vh.doc_root}}"
+    owner: "{{cops_www_vars.user}}"
+    group: "{{cops_www_vars.group}}"
+    mode: "{{vh.dmode|default('2751')}}"

@@ -1,0 +1,18 @@
+---
+cops_app_name: www
+# set to null to autogenerate on the remote box
+# or redefine to something more secret in your encrypted vault
+cops_www_admin_password: verysecret7Yt740i2WX0h30i
+#
+controller: localhost
+www_servers: www_servers
+app_servers: "{{www_servers}}"
+cops_installer_mode: lazy
+cops_www_name: "{{cops_app_name}}"
+cops_www_nginx_port: 80
+cops_www_nginx_ssl_port: 443
+corpusops_nginx_default_vhost_port: "{{cops_www_nginx_port}}"
+corpusops_nginx_default_vhost_ssl_port: "{{cops_www_nginx_ssl_port}}"
+# set this to false to explicitly configure haproxy !
+cops_www_dynamic_haproxy: true
+# vim:set ft=sls:
