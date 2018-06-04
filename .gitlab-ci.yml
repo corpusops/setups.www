@@ -57,10 +57,10 @@ stages: [test, deploy, jobs]
   when: manual
 
 .deploy_branchs: &deploy_branchs
-  only:   [staging]
+  only:   [staging, production]
 
 .not_deploy_branchs: &not_deploy_branchs
-  except: [staging]
+  except: [staging, production]
 
 .jobs_branchs: &jobs_branchs
   only:   [jobs]
@@ -69,10 +69,10 @@ stages: [test, deploy, jobs]
   except: [jobs]
 
 .test_branchs: &test_branchs
-  except: [staging, jobs]
+  except: [staging, jobs, production]
 
 .not_test_branchs: &not_test_branchs
-  only: [staging, jobs]
+  only: [staging, jobs, production]
 
 .test_skip: &test_skip
   <<: *job_skip
@@ -138,6 +138,12 @@ stages: [test, deploy, jobs]
     <<: [ *env_vault_variables ]
     A_VAULT_NAME: staging
 
+.production_vault_template: &production_vault
+  <<: [ *env_vault  ]
+  variables: &production_vault_variables
+    <<: [ *env_vault_variables ]
+    A_VAULT_NAME: production
+               
 test_skip_on_not_tests_branchs:
   <<: [*not_test_branchs, *test_skip]
 
@@ -160,12 +166,19 @@ staging_deploy:
     <<: [ *staging_vault_variables ]
     PLAYBOOK: ".ansible/playbooks/app.yml"
 
-# Manual jobs
-setup_haproxy:
-  <<: [ *ansible, *teardown_ansible, *setup_ansible, *jobs_branchs, *jobs ]
+production_deploy:
+  <<: [ *ansible, *teardown_ansible, *setup_ansible, *deploy_env, *deploy ]
+  only: [production]
   variables:
-    <<: [ *staging_vault_variables ]
-    PLAYBOOK: ".ansible/playbooks/haproxy.yml"
+    <<: [ *production_vault_variables ]
+    PLAYBOOK: ".ansible/playbooks/app.yml"
+ 
+# Manual jobs
+#setup_haproxy:
+#  <<: [ *ansible, *teardown_ansible, *setup_ansible, *jobs_branchs, *jobs ]
+#  variables:
+#    <<: [ *staging_vault_variables ]
+#    PLAYBOOK: ".ansible/playbooks/haproxy.yml"
 
 # setup_staging_db:
 #    <<: [ *ansible, *teardown_ansible, *setup_ansible, *jobs_branchs, *jobs ]
