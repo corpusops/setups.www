@@ -140,13 +140,13 @@ done <<< "$TOP_SCRIPTS"
 {%  set sshuser = vhost.get('ssh_user', {'user': none}).user %}
 {%  if sshuser %}
 {%   if docroot.endswith('/') %}{% set docroot = docroot[:-1] %}{% endif %}
-setfacl -R -m u:{{sshuser}}:rwx -m d:u:{{sshuser}}:rwx {{docroot}}
+setfacl -R -m u:{{sshuser}}:rwx,u:www-data:r-x,g:www-data:r-x -m d:u:{{sshuser}}:rwx,u:www-data:r-x,g:www-data:r-x {{docroot}}
 {%   set parents = docroot.split('/')[:-1] %}
 {%   set oldsp = {'r': ''}%}
 {%   for sp in parents %}
 {%    set _ = oldsp.update({'r': '/'.join([oldsp.r, sp]).replace('//', '/')}) %}
 {%    if oldsp.r not in['/'] %}{% set _ = aclsd.append(oldsp.r) %}{%endif %}
 {%   endfor %}
-setfacl -m u:{{sshuser}}:r-x -m d:u:{{sshuser}}:r-x {{' '.join(aclsd)}}
+setfacl -m u:{{sshuser}}:r-x,u:www-data:r-x,g:www-data:r-x -m d:u:{{sshuser}}:r-x,u:www-data:r-x,g:www-data:r-x {{' '.join(aclsd)}}
 {%  endif %}
 {% endfor %}

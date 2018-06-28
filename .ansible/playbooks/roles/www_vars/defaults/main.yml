@@ -228,9 +228,12 @@ cops_www_logrotate_conf: "/etc/logrotate.d/cops_{{vars['cops_www_name']}}.conf"
 cops_www_logrotate_rotate: 365
 cops_www_logrotate_size: 10M
 cops_www_htpasswd: "/etc/nginx/{{vars['cops_www_name']}}-htpasswd"
+cops_www_http_passwd_prefix: /etc/nginx
 cops_www_http_auth_restricted: false
-cops_www_http_users: []
-# - {user: "{{vars['cops_www_admin_user']}}", password: "{{vars['cops_www_admin_password']}}"}
+cops_www_http_users: {}
+#  #file: /etc/nginx/foobar.passwd
+#  users:
+#  - {user: "{{vars['cops_www_admin_user']}}", password: "{{vars['cops_www_admin_password']}}"}
 cops_www_admin_user: admin
 cops_www_admin_password: secretVVSV4SA8vK2TfeD
 cops_www_rp_max_body_size: "10000M"
@@ -261,7 +264,7 @@ cops_www_vhosts: []
 #  content_template: "../templates/www.conf"
 #  top_template: "../templates/www.top.conf"
 #  is_default_server: true
-#	 cache_disabled: false
+#  cache_disabled: false
 #  htpasswd: "{{vars['cops_www_htpasswd']}}"
 #  http_users: "{{vars['cops_www_http_users']}}"
 #  ssl_protected: false

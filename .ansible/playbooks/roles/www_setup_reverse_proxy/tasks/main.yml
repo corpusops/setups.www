@@ -22,12 +22,9 @@
          "cops_www_vhosts|copsf_bool"]
 
 # Configure http users
-- htpasswd:
-    path: "{{cops_www_vars.htpasswd}}"
-    name: "{{item.user}}"
-    password: "{{item.password}}"
-    state: present
-  with_items: "{{cops_www_vars.http_users}}"
+- include_tasks: _htpasswd.yml
+  with_dict: "{{cops_www_vars.http_users}}"
+  loop_control: {loop_var: httpusers}
   when: ["cops_www_s_setup_reverse_proxy_users and (
             cops_www_vars.http_users is not none and
             cops_www_vars.http_users|length > 0)"]
