@@ -22,6 +22,7 @@ cops_www_supereditors_paths: "{{vars['cops_www__supereditors_paths']}}"
 cops_www_supereditors: "{{vars['cops_www__supereditors']}}"
 # cops_www_deb_packages is initialised on behalf of cops_registry voodoo
 # and let users override the list easily
+cops_www_healthcheck_follow_redirect: false
 cops_www_deb_runtime_packages:
   - apache2-utils
   - bzip2

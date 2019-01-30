@@ -3,18 +3,20 @@
   uri:
     url: "http://{{cops_www_vars.query_host}}:{{cops_www_vars.nginx.port}}/"
     return_content: true
-    headers:
-      Host: "{{cops_www_vars.domain}}"
-    user: "{{((not cops_www_vars.http_users)
-            and omit
-            or cops_www_vars.http_users[0].user)}}"
-    password: "{{((not cops_www_vars.http_users)
-                and omit
-                or cops_www_vars.http_users[0].password)}}"
+    follow_redirects: "{{cops_www_vars.healthcheck_follow_redirect}}"
+    headers: {Host: "{{cops_www_vars.domain}}"}
+    # no need tp be auth to check nginx is running
+    # user: "{{((not cops_www_vars.http_users)
+    #         and omit
+    #         or cops_www_vars.http_users[0].user)}}"
+    # password: "{{((not cops_www_vars.http_users)
+    #             and omit
+    #             or cops_www_vars.http_users[0].password)}}"
   register: cops_www_check1
-  until:       "('{0}'.format(cops_www_check1.status)[0]
+  until:           "('{0}'.format(cops_www_check1.get('status', 'FAILED'))[0]
                 in ['1','2','3','4','5','6','7','8','9'])"
-  failed_when: "not ('{0}'.format(cops_www_check1.status)[0]
+
+  failed_when: "not ('{0}'.format(cops_www_check1.get('status', 'FAILED'))[0]
                 in ['1','2','3','4','5','6','7','8','9'])"
   retries: 10
   delay: 1
