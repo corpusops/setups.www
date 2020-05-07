@@ -15,7 +15,7 @@
 
 - name: Generate APP other virtualhost
   include_tasks: _render_vhost.yml
-  with_items: "{{cops_www_vars.vhosts}}"
+  loop: "{{cops_www_vars.vhosts}}"
   loop_control: {loop_var: other_vhost}
   tags: ["cops_www_s_setup_reverse_proxy_vhosts"]
   when: ["cops_www_s_setup_reverse_proxy_vhosts",

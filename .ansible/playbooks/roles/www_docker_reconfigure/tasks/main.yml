@@ -9,7 +9,7 @@
   file:
     state: absent
     path: "{{item}}"
-  with_items: |-
+  loop: |-
     {% set res = [] %}
     {% set s = [] %}
     {% if  not cops_www_docker_has_nginx %}
@@ -33,7 +33,7 @@
     value: true
     mode: 0600
     backup: false
-  with_items: |
+  loop: |
     {% set res = [] %}
     {% if cops_www_vars.docker_has_zeo %}
     {%  set _ = res.append("zeo") %}

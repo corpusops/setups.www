@@ -4,7 +4,7 @@
   - include_tasks: _s_group.yml
     tags: [cops_www_s_users_group]
     when: [cops_www_s_users_group]
-    with_items:
+    loop:
     - "{{vh.ssh_user.get('groups', [])}}"
     - "{{vh.ssh_user.get('group', vh.ssh_user.user) or vh.ssh_user.user}}"
     loop_control: {loop_var: group}
@@ -27,5 +27,5 @@
     become: true
     become_user: "{{vh.ssh_user.user}}"
   - include_tasks: _s_sshkey.yml
-    with_items: "{{vh.ssh_user.get('keys', [])}}"
+    loop: "{{vh.ssh_user.get('keys', [])}}"
     loop_control: {loop_var: subkey}

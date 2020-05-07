@@ -9,12 +9,12 @@
     owner: "{{item.owner|default(omit)}}"
     group: "{{item.group|default(omit)}}"
     recurse: "{{item.recurse|default(omit)}}"
-  with_items: "{{cops_www_vars.files}}"
+  loop: "{{cops_www_vars.files}}"
   tags: [cops_www_s_layout_layout]
   when: [cops_www_s_layout_layout]
 - include_tasks: _s_vhdir.yml
   tags: [cops_www_s_layout_layout]
   when: [cops_www_s_layout_layout]
-  with_items: "{{cops_www_vars.vhosts}}"
+  loop: "{{cops_www_vars.vhosts}}"
   loop_control: {loop_var: vh}
 

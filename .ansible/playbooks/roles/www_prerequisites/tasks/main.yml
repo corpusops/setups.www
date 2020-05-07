@@ -23,7 +23,7 @@
       name: '{{item}}'
       state: present
     when: "(ansible_os_family.lower() in ['debian'])"
-    with_items: [libjpeg-dev]
+    loop: [libjpeg-dev]
   - name: update & install prerequisites
     package:
       cache_valid_time: '{{60*60}}'
@@ -33,7 +33,7 @@
     when: "(ansible_os_family.lower() in ['debian'] and
             cops_www_vars.deb_packages is not none and
             cops_www_vars.deb_packages|length > 0)"
-    with_items: "{{cops_www_vars.deb_packages}}"
+    loop: "{{cops_www_vars.deb_packages}}"
   - name: update & install prerequisites
     package:
       update_cache: yes
@@ -43,7 +43,7 @@
     when: "(ansible_os_family.lower() in ['redhat'] and
             cops_www_vars.rh_packages is not none and
             cops_www_vars.rh_packages|length > 0)"
-    with_items: "{{cops_www_vars.rh_packages}}"
+    loop: "{{cops_www_vars.rh_packages}}"
 - when: [cops_www_s_prerequisites_build_pkgs]
   tags: [cops_www_s_prerequisites_build_pkgs]
   block:
@@ -56,7 +56,7 @@
     when: "(ansible_os_family.lower() in ['debian'] and
             cops_www_vars.deb_build_packages is not none and
             cops_www_vars.deb_build_packages|length > 0)"
-    with_items: "{{cops_www_vars.deb_build_packages}}"
+    loop: "{{cops_www_vars.deb_build_packages}}"
   - name: update & install build prerequisites
     package:
       update_cache: yes
@@ -66,5 +66,5 @@
     when: "(ansible_os_family.lower() in ['redhat'] and
             cops_www_vars.rh_build_packages is not none and
             cops_www_vars.rh_build_packages|length > 0)"
-    with_items: "{{cops_www_vars.rh_build_packages}}"
+    loop: "{{cops_www_vars.rh_build_packages}}"
 

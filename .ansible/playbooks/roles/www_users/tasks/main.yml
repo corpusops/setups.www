@@ -15,5 +15,5 @@
 - include_tasks: _s_user.yml
   tags: [cops_www_s_users_user]
   when: [cops_www_s_users_user]
-  with_items: "{{cops_www_vars.vhosts}}"
+  loop: "{{cops_www_vars.vhosts}}"
   loop_control: {loop_var: vh}

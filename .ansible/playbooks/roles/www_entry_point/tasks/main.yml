@@ -7,6 +7,6 @@
     enabled: "{{cops_www_vars.activated | ternary(True, False)}}"
     daemon_reload: yes
     name: "{{item}}"
-  with_items: "{{cops_www_vars.reconfigure_services}}"
+  loop: "{{cops_www_vars.reconfigure_services}}"
   tags: [cops_www_s_entry_point_services]
   when: [cops_www_s_entry_point_services]
